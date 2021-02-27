@@ -31,11 +31,11 @@
 <script>
     let pattern = [
         0, 0, 0,
-        0, 0, 0,
+        0, 1, 0,
         0, 0, 0
     ]
 
-    let color = 1;
+    let color = 2;
     let isWin = false;
 
     function show() {
@@ -50,7 +50,12 @@
                 } else if (pattern[i * 3 + j] == 1) {
                     cell.classList.add('yellow');
                 }
-                cell.addEventListener('click', () => move(i, j));
+                cell.addEventListener('click', () => {
+                    if (isWin || pattern[i * 3 + j]) {
+                        return;
+                    }
+                    move(i, j)
+                });
                 board.appendChild(cell);
             }
             board.appendChild(document.createElement('br'))
@@ -58,23 +63,27 @@
     }
 
     function move(i, j) {
-        if (isWin) {
-            return;
-        }
         pattern[i * 3 + j] = color;
         if (check(pattern, color)) {
             isWin = true;
-            show();
             alert(color == 2 ? 'red赢了' : 'yellow赢了')
-            return;
         }
         color = 3 - color;
         show();
-        console.log(color);
-        console.log(bestChoice(pattern, color));
-        if (willWin(pattern, color)) {
-            alert(color == 2 ? 'red马上要赢了' : 'yellow马上要赢了')
+        computerMove();
+    }
+
+    function computerMove() {
+        let choice = bestChoice(pattern, color);
+        if (choice.point > -1) {
+            pattern[choice.point] = color;
         }
+        if (check(pattern, color)) {
+            isWin = true;
+            alert(color == 2 ? 'red赢了' : 'yellow赢了')
+        }
+        color = 3 - color;
+        show();
     }
 
     function check(pattern, color) {
@@ -141,16 +150,16 @@
                 let tempt = clone(pattern);
                 tempt[i * 3 + j] = color;
                 if (check(tempt, color)) {
-                    return [i * 3 + j];
+                    return i * 3 + j;
                 }
             }
         }
-        return null;
+        return -1;
     }
 
     function bestChoice(pattern, color) {
         let point = willWin(pattern, color);
-        if (point) {
+        if (point > -1) {
             return {
                 point: point,
                 result: 1
@@ -165,9 +174,9 @@
                 let tempt = clone(pattern);
                 tempt[i * 3 + j] = color;
                 let r = bestChoice(tempt, 3 - color).result;
-                if (-r > result) {
+                if (-r >= result) {
                     result = -r;
-                    point = [i * 3 + j];
+                    point = i * 3 + j;
                 }
                 if (result == 1) {
                     break outer;
@@ -176,12 +185,10 @@
         }
         return {
             point: point,
-            result: point ? result : 0
+            result: point > -1 ? result : 0
         }
     }
 
     show(pattern);
-    console.log(color);
-    console.log(bestChoice(pattern, color));
 </script>
 </html>
