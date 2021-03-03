@@ -179,7 +179,7 @@
             container.children[index].style.backgroundColor = 'lightgreen';
             table[index] = pre;
             queue.give([i, j]);
-            await sleep(1);
+            //await sleep(1);
         }
 
         while (queue.length()) {
@@ -195,15 +195,10 @@
                 }
                 return path;
             }
-            await insert(i - 1, j, [i, j]);
-            await insert(i + 1, j, [i, j]);
-            await insert(i, j - 1, [i, j]);
-            await insert(i, j + 1, [i, j]);
-
-            // await insert(i - 1, j - 1, [i, j]);
-            // await insert(i - 1, j + 1, [i, j]);
-            // await insert(i + 1, j - 1, [i, j]);
-            // await insert(i + 1, j + 1, [i, j]);
+            let neighbor = getNeighbor(i, j);
+            for (let i2 = 0; i2 < neighbor.length; i2++) {
+                await insert(neighbor[i2][0], neighbor[i2][1], [i, j]);
+            }
         }
     }
 
