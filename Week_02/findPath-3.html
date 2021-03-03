@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .cell {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            line-height: 7px;
+            background: gray;
+            border-bottom: 1px solid white;
+            border-right: 1px solid white;
+            vertical-align: top;
+        }
+
+        #container {
+            width: 701px;
+            line-height: 7px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<button onclick="save()">save</button>
+</body>
+<script>
+    const rows = 100;
+    const columns = 100;
+    let mousedown = false;
+    let clear = false;
+    let mapStorage = localStorage.getItem('map');
+    let map = mapStorage ? JSON.parse(mapStorage) : Array(rows * columns).fill(0);
+    let container = document.getElementById('container');
+
+    function save() {
+        localStorage.setItem('map', JSON.stringify(map));
+    }
+
+    function sleep(t) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, t)
+        })
+    }
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            let cell = document.createElement('div');
+            cell.classList.add('cell');
+            if (map[i * columns + j] == 1) {
+                cell.style.backgroundColor = 'black';
+            }
+            cell.addEventListener('mousemove', () => {
+                if (!mousedown) {
+                    return;
+                }
+                if (clear) {
+                    cell.style.backgroundColor = '';
+                    map[i * columns + j] = 0;
+                } else {
+                    cell.style.backgroundColor = 'black';
+                    map[i * columns + j] = 1;
+                }
+            })
+            container.appendChild(cell);
+        }
+    }
+    document.addEventListener('mousedown', (event) => {
+        mousedown = true;
+        clear = event.button == 2;
+    })
+    document.addEventListener('mouseup', () => {
+        mousedown = false;
+    })
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+    })
+
+    async function path(map, start, end) {
+        let queue = [start];
+        let table = Object.create(map);
+
+        async function insert(i, j, pre) {
+            if (i < 0 || i >= rows || j < 0 || j >= columns) {
+                return;
+            }
+            let index = i * 100 + j;
+            if (table[index]) {
+                return;
+            }
+            container.children[index].style.backgroundColor = 'lightgreen';
+            table[index] = pre;
+            queue.push([i, j]);
+            //await sleep(1);
+        }
+
+        while (queue.length) {
+            let [i, j] = queue.shift();
+            if (i === end[0] && j === end[1]) {
+                let path = [];
+                while (i != start[0] || j != start[1]) {
+                    let index = i * 100 + j;
+                    path.push(table[index]);
+                    [i, j] = table[index];
+                    container.children[index].style.backgroundColor = 'purple';
+                    await sleep(1);
+                }
+                return path;
+            }
+            await insert(i - 1, j, [i, j]);
+            await insert(i + 1, j, [i, j]);
+            await insert(i, j - 1, [i, j]);
+            await insert(i, j + 1, [i, j]);
+
+            await insert(i - 1, j - 1, [i, j]);
+            await insert(i - 1, j + 1, [i, j]);
+            await insert(i + 1, j - 1, [i, j]);
+            await insert(i + 1, j + 1, [i, j]);
+        }
+    }
+
+    //path(map, [0, 0], [50, 50]);
+</script>
+</html>
