@@ -59,7 +59,7 @@
             this.data.push(item);
         }
 
-        length() {
+        get length() {
             return this.data.length;
         }
     }
@@ -179,10 +179,10 @@
             container.children[index].style.backgroundColor = 'lightgreen';
             table[index] = pre;
             queue.give([i, j]);
-            //await sleep(1);
+            await sleep(1);
         }
 
-        while (queue.length()) {
+        while (queue.length) {
             let [i, j] = queue.take();
             if (i === end[0] && j === end[1]) {
                 let path = [];

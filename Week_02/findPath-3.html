@@ -92,7 +92,7 @@
             container.children[index].style.backgroundColor = 'lightgreen';
             table[index] = pre;
             queue.push([i, j]);
-            //await sleep(1);
+            await sleep(1);
         }
 
         while (queue.length) {
@@ -113,13 +113,13 @@
             await insert(i, j - 1, [i, j]);
             await insert(i, j + 1, [i, j]);
 
-            await insert(i - 1, j - 1, [i, j]);
-            await insert(i - 1, j + 1, [i, j]);
-            await insert(i + 1, j - 1, [i, j]);
-            await insert(i + 1, j + 1, [i, j]);
+            // await insert(i - 1, j - 1, [i, j]);
+            // await insert(i - 1, j + 1, [i, j]);
+            // await insert(i + 1, j - 1, [i, j]);
+            // await insert(i + 1, j + 1, [i, j]);
         }
     }
 
-    //path(map, [0, 0], [50, 50]);
+    path(map, [0, 0], [50, 50]);
 </script>
 </html>

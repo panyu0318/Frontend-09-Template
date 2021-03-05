@@ -59,7 +59,7 @@
             this.data.push(item);
         }
 
-        length() {
+        get length() {
             return this.data.length;
         }
     }
@@ -139,7 +139,7 @@
             await sleep(1);
         }
 
-        while (queue.length()) {
+        while (queue.length) {
             let [i, j] = queue.take();
             if (i === end[0] && j === end[1]) {
                 let path = [];
@@ -157,10 +157,10 @@
             await insert(i, j - 1, [i, j]);
             await insert(i, j + 1, [i, j]);
 
-            await insert(i - 1, j - 1, [i, j]);
-            await insert(i - 1, j + 1, [i, j]);
-            await insert(i + 1, j - 1, [i, j]);
-            await insert(i + 1, j + 1, [i, j]);
+            // await insert(i - 1, j - 1, [i, j]);
+            // await insert(i - 1, j + 1, [i, j]);
+            // await insert(i + 1, j - 1, [i, j]);
+            // await insert(i + 1, j + 1, [i, j]);
         }
     }
 
