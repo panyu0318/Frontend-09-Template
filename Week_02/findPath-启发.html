@@ -60,7 +60,7 @@
             this.data.push(item);
         }
 
-        length() {
+        get length() {
             return this.data.length;
         }
     }
@@ -130,7 +130,7 @@
             if (i < 0 || i >= rows || j < 0 || j >= columns) {
                 return;
             }
-            let index = i * 100 + j;
+            let index = i * columns + j;
             if (table[index]) {
                 return;
             }
@@ -140,12 +140,12 @@
             //await sleep(1);
         }
 
-        while (queue.length()) {
+        while (queue.length) {
             let [i, j] = queue.take();
             if (i === end[0] && j === end[1]) {
                 let path = [];
                 while (i != start[0] || j != start[1]) {
-                    let index = i * 100 + j;
+                    let index = i * columns + j;
                     path.push(table[index]);
                     [i, j] = table[index];
                     container.children[index].style.backgroundColor = 'purple';
