@@ -25,14 +25,45 @@
 <div id="container"></div>
 <button onclick="save()">save</button>
 </body>
+<script src="defaultMapData.js"></script>
 <script>
-    const rows = 100;
-    const columns = 100;
-    let mousedown = false;
-    let clear = false;
-    let mapStorage = localStorage.getItem('map');
-    let map = mapStorage ? JSON.parse(mapStorage) : Array(rows * columns).fill(0);
-    let container = document.getElementById('container');
+    class Sorted {
+        constructor(data, compare) {
+            this.data = data.slice();
+            this.compare = compare || ((a, b) => {
+                return a - b;
+            })
+        }
+
+        take() {
+            if (!this.data.length) {
+                return;
+            }
+            let that = this;
+            let min = null;
+            let minIndex = null;
+            that.data.forEach((item, index) => {
+                if (index == 0) {
+                    min = item;
+                    minIndex = 0;
+                } else if (that.compare(item, min) < 0) {
+                    min = item;
+                    minIndex = index;
+                }
+            })
+            this.data[minIndex] = this.data[this.data.length - 1];
+            this.data.pop();
+            return min;
+        }
+
+        give(item) {
+            this.data.push(item);
+        }
+
+        get length() {
+            return this.data.length;
+        }
+    }
 
     function save() {
         localStorage.setItem('map', JSON.stringify(map));
@@ -43,6 +74,14 @@
             setTimeout(resolve, t)
         })
     }
+
+    const rows = 100;
+    const columns = 100;
+    let mousedown = false;
+    let clear = false;
+    let mapStorage = localStorage.getItem('map');
+    let map = mapStorage ? JSON.parse(mapStorage) : getDefaultMapData();
+    let container = document.getElementById('container');
 
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
@@ -77,30 +116,36 @@
         event.preventDefault();
     })
 
-    async function path(map, start, end) {
-        let queue = [start];
+    async function findPath(map, start, end) {
+        function distance(point) {
+            return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+        }
+
+        let queue = new Sorted([start], (a, b) => {
+            return distance(a) - distance(b);
+        });
         let table = Object.create(map);
 
         async function insert(i, j, pre) {
             if (i < 0 || i >= rows || j < 0 || j >= columns) {
                 return;
             }
-            let index = i * 100 + j;
+            let index = i * columns + j;
             if (table[index]) {
                 return;
             }
             container.children[index].style.backgroundColor = 'lightgreen';
             table[index] = pre;
-            queue.push([i, j]);
-            await sleep(1);
+            queue.give([i, j]);
+            //await sleep(1);
         }
 
         while (queue.length) {
-            let [i, j] = queue.shift();
+            let [i, j] = queue.take();
             if (i === end[0] && j === end[1]) {
                 let path = [];
                 while (i != start[0] || j != start[1]) {
-                    let index = i * 100 + j;
+                    let index = i * columns + j;
                     path.push(table[index]);
                     [i, j] = table[index];
                     container.children[index].style.backgroundColor = 'purple';
@@ -120,6 +165,6 @@
         }
     }
 
-    path(map, [0, 0], [50, 50]);
+    findPath(map, [0, 0], [50, 50]);
 </script>
 </html>

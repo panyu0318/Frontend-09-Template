@@ -25,6 +25,7 @@
 <div id="container"></div>
 <button onclick="save()">save</button>
 </body>
+<script src="defaultMapData.js"></script>
 <script>
     class Sorted {
         constructor(data, compare) {
@@ -74,12 +75,36 @@
         })
     }
 
+    function isValidRange(i, j) {
+        if (i < 0 || i >= rows || j < 0 || j >= columns) {
+            return false;
+        }
+        return true;
+    }
+
+    function getIndex(i, j) {
+        return i * columns + j;
+    }
+
+    function getNeighbor(i, j) {
+        return [
+            [i - 1, j],
+            [i + 1, j],
+            [i, j - 1],
+            [i, j + 1]/*,
+            [i - 1, j - 1],
+            [i - 1, j + 1],
+            [i + 1, j - 1],
+            [i + 1, j + 1]*/
+        ]
+    }
+
     const rows = 100;
     const columns = 100;
     let mousedown = false;
     let clear = false;
     let mapStorage = localStorage.getItem('map');
-    let map = mapStorage ? JSON.parse(mapStorage) : Array(rows * columns).fill(0);
+    let map = mapStorage ? JSON.parse(mapStorage) : getDefaultMapData();
     let container = document.getElementById('container');
 
     for (let i = 0; i < rows; i++) {
@@ -120,17 +145,33 @@
             return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
         }
 
+        function totalLength([i, j]) {
+            let length = 0;
+            while (i != start[0] || j != start[1]) {
+                length++;
+                [i, j] = table[getIndex(i, j)];
+            }
+            return length;
+        };
+
         let queue = new Sorted([start], (a, b) => {
             return distance(a) - distance(b);
         });
         let table = Object.create(map);
+        table[getIndex(start[0]), start[1]] = start;
 
         async function insert(i, j, pre) {
-            if (i < 0 || i >= rows || j < 0 || j >= columns) {
+            if (!isValidRange(i, j)) {
                 return;
             }
-            let index = i * 100 + j;
+            let index = getIndex(i, j);
             if (table[index]) {
+                if (table[index] == 1) {
+                    return;
+                }
+                if (totalLength(pre) <= totalLength(table[index])) {
+                    table[index] = pre;
+                }
                 return;
             }
             container.children[index].style.backgroundColor = 'lightgreen';
@@ -144,7 +185,7 @@
             if (i === end[0] && j === end[1]) {
                 let path = [];
                 while (i != start[0] || j != start[1]) {
-                    let index = i * 100 + j;
+                    let index = i * columns + j;
                     path.push(table[index]);
                     [i, j] = table[index];
                     container.children[index].style.backgroundColor = 'purple';
@@ -152,15 +193,10 @@
                 }
                 return path;
             }
-            await insert(i - 1, j, [i, j]);
-            await insert(i + 1, j, [i, j]);
-            await insert(i, j - 1, [i, j]);
-            await insert(i, j + 1, [i, j]);
-
-            // await insert(i - 1, j - 1, [i, j]);
-            // await insert(i - 1, j + 1, [i, j]);
-            // await insert(i + 1, j - 1, [i, j]);
-            // await insert(i + 1, j + 1, [i, j]);
+            let neighbor = getNeighbor(i, j);
+            for (let i2 = 0; i2 < neighbor.length; i2++) {
+                await insert(neighbor[i2][0], neighbor[i2][1], [i, j]);
+            }
         }
     }
 
